@@ -3,145 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSK Flash Typing</title>
+    <title>HSK Flash Typing - iOS Style</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
     <style>
         @font-face {
             font-family: 'Kaiti';
             src: local('KaiTi'), local('STKaiti'), local('BiauKai');
         }
-        .font-hanzi {
-            font-family: 'Kaiti', serif;
-            font-size: 1.75rem;
+        :root {
+            --ios-green: #34C759;
+            --ios-bg: #F2F2F7;
+            --ios-card: #FFFFFF;
         }
-        body { overflow: hidden; }
-        .scrollable-content {
-            max-height: calc(100vh - 180px);
-            overflow-y: auto;
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--ios-bg);
+            height: 100dvh; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #16a34a; border-radius: 4px; }
-        ::-webkit-scrollbar-track { background: #dcfce7; }
+        .font-hanzi { font-family: 'Kaiti', serif; font-size: 1.75rem; }
         
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+        
+        .ios-btn { transition: all 0.2s ease; }
+        .ios-btn:active { transform: scale(0.96); opacity: 0.8; }
+        
+        table { border-collapse: separate; border-spacing: 0; }
         tr { transition: background-color 0.2s ease; }
-        .completed-row td { color: #065f46 !important; }
+        th { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .completed-row td { color: var(--ios-green) !important; font-weight: 500; }
         .hidden-col { display: none !important; }
         .concealed-text { color: transparent; user-select: none; }
         .completed-row .concealed-text { color: inherit; } 
+
+        .lobby-avatar {
+            font-size: 5rem;
+            display: inline-block;
+            background: #E8F5E9;
+            border-radius: 50%;
+            padding: 1.5rem;
+            box-shadow: 0 8px 24px rgba(52, 199, 89, 0.2);
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
-<body class="bg-green-50 h-screen flex flex-col text-slate-800">
+<body class="text-slate-800">
 
-    <!-- Header & Lobby (6 HSK Levels) -->
-    <header class="bg-green-700 text-white shadow-md">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-wider">HSK FLASH<span class="text-green-300">TYPING</span></h1>
-            <div class="flex gap-2" id="hsk-levels"></div>
+    <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 z-50 sticky top-0">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center h-[60px]">
+            <button id="btn-back" class="hidden text-green-500 font-medium ios-btn flex items-center gap-1" onclick="showLobby()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                Trở lại
+            </button>
+            <h1 class="text-lg font-bold tracking-tight text-center flex-1" id="header-title">HSK Flash<span class="text-green-500">Typing</span></h1>
+            <div class="w-20" id="header-spacer"></div>
         </div>
     </header>
 
-    <!-- Main Navigation -->
-    <nav class="bg-green-600 text-green-50 shadow-inner">
-        <div class="container mx-auto px-4 flex gap-6">
-            <button class="tab-btn active font-semibold py-3 border-b-4 border-white" onclick="switchTab('vocab', this)">Từ Vựng</button>
-            <button class="tab-btn py-3 border-b-4 border-transparent hover:border-green-300 opacity-80 hover:opacity-100" onclick="switchTab('grammar', this)">Ngữ Pháp</button>
-            <button class="tab-btn py-3 border-b-4 border-transparent hover:border-green-300 opacity-80 hover:opacity-100" onclick="switchTab('exercise', this)">Bài Tập</button>
-            <button class="tab-btn py-3 border-b-4 border-transparent hover:border-green-300 opacity-80 hover:opacity-100" onclick="switchTab('upload', this)">Nạp Tài Liệu</button>
+    <main id="view-lobby" class="flex-1 flex flex-col items-center justify-center p-4 scrollable-content">
+        <div class="text-center mb-8 animate-fade-in">
+            <div class="lobby-avatar">👧🏻📚</div>
+            <h2 class="text-2xl font-bold text-gray-800">Cùng học tiếng Trung!</h2>
+            <p class="text-gray-500 mt-2 text-sm">Chọn cấp độ để bắt đầu luyện gõ</p>
         </div>
-    </nav>
-
-    <!-- Content Area -->
-    <main class="container mx-auto px-4 py-4 flex-1">
         
-        <!-- MENU 1: TỪ VỰNG -->
-        <section id="tab-vocab" class="tab-content h-full flex flex-col">
-            <div class="bg-white p-3 rounded-lg shadow-sm mb-4 flex flex-wrap gap-4 items-center justify-between border-l-4 border-green-500">
-                <div class="flex items-center gap-4">
-                    <div class="font-semibold text-green-700">Hiển thị:</div>
-                    <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="col-hanzi" checked onchange="toggleColumn('hanzi', this)"> Hán Tự</label>
-                    <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="col-pinyin" checked onchange="toggleColumn('pinyin', this)"> Pinyin</label>
-                    <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="col-meaning" checked onchange="toggleColumn('meaning', this)"> Nghĩa</label>
-                </div>
-                <div class="flex items-center gap-4">
-                    <select id="mode-select" class="bg-green-50 border border-green-300 rounded px-2 py-1 outline-none text-green-800" onchange="setMode()">
-                        <option value="zh-vi">Chế độ: Trung - Việt (Nhìn chữ gõ chữ)</option>
-                        <option value="vi-zh">Chế độ: Việt - Trung (Nhìn nghĩa gõ chữ)</option>
-                    </select>
-                    <button id="btn-shuffle" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded shadow transition" onclick="shuffleData()">🔀 Ngẫu Nhiên</button>
-                    <button class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1 rounded shadow transition" onclick="loadVocabTable()">🔄 Reset</button>
-                </div>
-            </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-lg" id="hsk-grid">
+        </div>
+    </main>
 
-            <div class="bg-white rounded-lg shadow-md flex-1 scrollable-content border border-green-100">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-green-100 text-green-800 sticky top-0 z-10 shadow-sm">
-                        <tr>
-                            <th class="p-3 w-1/4 col-hanzi">Hán Tự</th>
-                            <th class="p-3 w-1/4 col-pinyin">Pinyin</th>
-                            <th class="p-3 w-1/4 col-meaning">Nghĩa</th>
-                            <th class="p-3 w-1/4">Gõ Hán Tự</th>
-                        </tr>
-                    </thead>
-                    <tbody id="vocab-body" class="divide-y divide-green-50"></tbody>
-                </table>
+    <main id="view-study" class="hidden flex-1 flex-col overflow-hidden">
+        
+        <div class="bg-white px-4 py-2 border-b border-gray-200 shadow-sm z-40 overflow-x-auto whitespace-nowrap">
+            <div class="flex gap-2 w-full max-w-3xl mx-auto">
+                <button class="tab-btn ios-btn active px-4 py-1.5 rounded-full text-sm font-medium bg-green-500 text-white" onclick="switchTab('vocab', this)">Từ Vựng</button>
+                <button class="tab-btn ios-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200" onclick="switchTab('grammar', this)">Ngữ Pháp</button>
+                <button class="tab-btn ios-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200" onclick="switchTab('exercise', this)">Bài Tập</button>
+                <button class="tab-btn ios-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200" onclick="switchTab('upload', this)">Nạp Tài Liệu</button>
             </div>
-        </section>
+        </div>
 
-        <!-- MENU 2: NGỮ PHÁP -->
-        <section id="tab-grammar" class="tab-content hidden h-full">
-            <div class="bg-white rounded-lg shadow-md p-8 text-center h-full border-2 border-dashed border-green-300 flex flex-col items-center justify-center">
-                <span class="text-6xl mb-4">🧩</span>
-                <h2 class="text-2xl font-bold text-green-700 mb-2" id="grammar-title">Ngữ Pháp HSK 1</h2>
-                <p class="text-slate-500">Chưa nạp dữ liệu. (Dữ liệu sẽ được lắp ráp sau khi thuộc từ vựng).</p>
-            </div>
-        </section>
-
-        <!-- MENU 3: BÀI TẬP -->
-        <section id="tab-exercise" class="tab-content hidden h-full">
-            <div class="bg-white rounded-lg shadow-md p-8 text-center h-full border border-green-200 flex flex-col items-center justify-center">
-                <span class="text-6xl mb-4">⏱️</span>
-                <h2 class="text-2xl font-bold text-green-700 mb-2">Thực Chiến HSK</h2>
-                <p class="text-slate-600 mb-6">Trắc nghiệm phản xạ giới hạn 8 giây.</p>
-                <button class="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105">Bắt đầu làm bài</button>
-            </div>
-        </section>
-
-        <!-- MENU 4: NẠP TÀI LIỆU -->
-        <section id="tab-upload" class="tab-content hidden h-full">
-            <div class="bg-white rounded-lg shadow-md p-6 h-full border border-green-100 flex flex-col">
-                <h2 class="text-xl font-bold text-green-700 mb-4">Quản lý Tài liệu HSK</h2>
-                <p class="text-slate-600 mb-2">Mã Prompt cho AI để lấy dữ liệu đúng chuẩn:</p>
-                
-                <div class="bg-slate-800 text-green-400 p-4 rounded-md font-mono text-sm mb-4 relative">
-                    <button class="absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded" onclick="copyPrompt()">Copy</button>
-                    <code id="ai-prompt">Tạo cho tôi 25 từ vựng (từ đơn) thông dụng nhất của HSK 1. Không dùng từ vựng chuyên ngành. Xuất kết quả duy nhất dưới định dạng mảng JSON thuần túy như sau:
-[
-  {"hanzi": "我", "pinyin": "wǒ", "meaning": "Tôi"},
-  {"hanzi": "吃", "pinyin": "chī", "meaning": "Ăn"}
-]</code>
+        <div class="flex-1 overflow-hidden relative">
+            <!-- TỪ VỰNG -->
+            <section id="tab-vocab" class="tab-content h-full flex flex-col p-2 md:p-4 absolute inset-0">
+                <div class="bg-white p-3 rounded-xl shadow-sm mb-3 flex flex-col md:flex-row gap-3 items-center justify-between border border-gray-100">
+                    <div class="flex items-center gap-3 text-sm w-full md:w-auto overflow-x-auto">
+                        <label class="flex items-center gap-1 cursor-pointer whitespace-nowrap bg-gray-50 px-2 py-1 rounded-lg border"><input type="checkbox" id="col-hanzi" checked onchange="toggleColumn('hanzi', this)" class="accent-green-500"> Hán Tự</label>
+                        <label class="flex items-center gap-1 cursor-pointer whitespace-nowrap bg-gray-50 px-2 py-1 rounded-lg border"><input type="checkbox" id="col-pinyin" checked onchange="toggleColumn('pinyin', this)" class="accent-green-500"> Pinyin</label>
+                        <label class="flex items-center gap-1 cursor-pointer whitespace-nowrap bg-gray-50 px-2 py-1 rounded-lg border"><input type="checkbox" id="col-meaning" checked onchange="toggleColumn('meaning', this)" class="accent-green-500"> Nghĩa</label>
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <select id="mode-select" class="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 text-sm outline-none text-gray-700 flex-1 md:w-auto" onchange="setMode()">
+                            <option value="zh-vi">Trung → Việt (Nhìn chữ)</option>
+                            <option value="vi-zh">Việt → Trung (Nhìn nghĩa)</option>
+                        </select>
+                        <button class="ios-btn bg-green-50 text-green-600 border border-green-200 px-3 py-1.5 rounded-lg shadow-sm" onclick="shuffleData()">🔀</button>
+                        <button class="ios-btn bg-gray-100 text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm" onclick="loadVocabTable()">🔄</button>
+                    </div>
                 </div>
 
-                <div class="flex-1 flex flex-col gap-2">
-                    <label class="font-semibold text-green-800">Dán dữ liệu JSON vào đây (Lưu vào máy của bạn):</label>
-                    <textarea id="json-input" class="flex-1 w-full border-2 border-green-200 rounded-md p-3 outline-none focus:border-green-500 resize-none font-mono text-sm" placeholder='[{"hanzi": "...", "pinyin": "...", "meaning": "..."}]'></textarea>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 overflow-auto relative">
+                    <table class="w-full text-left">
+                        <thead class="sticky top-0 z-10">
+                            <tr>
+                                <th class="p-3 text-sm font-semibold text-gray-500 border-b col-hanzi bg-white/90 backdrop-blur">Hán Tự</th>
+                                <th class="p-3 text-sm font-semibold text-gray-500 border-b col-pinyin bg-white/90 backdrop-blur">Pinyin</th>
+                                <th class="p-3 text-sm font-semibold text-gray-500 border-b col-meaning bg-white/90 backdrop-blur">Nghĩa</th>
+                                <th class="p-3 text-sm font-semibold text-gray-500 border-b bg-white/90 backdrop-blur w-24 md:w-auto">Gõ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vocab-body" class="divide-y divide-gray-100"></tbody>
+                    </table>
                 </div>
-                <div class="mt-4 flex justify-between items-center">
-                    <button class="text-red-500 hover:text-red-700 underline text-sm" onclick="clearLevelData()">Xóa dữ liệu cấp độ này</button>
-                    <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md shadow font-bold" onclick="saveUploadData()">Lưu Dữ Liệu</button>
-                </div>
-            </div>
-        </section>
+            </section>
 
+            <!-- NGỮ PHÁP -->
+            <section id="tab-grammar" class="tab-content hidden h-full p-2 md:p-4 absolute inset-0">
+                <div class="bg-white rounded-xl shadow-sm p-6 text-center h-full border border-gray-200 flex flex-col items-center justify-center">
+                    <span class="text-6xl mb-4">🧩</span>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2" id="grammar-title">Ngữ Pháp HSK</h2>
+                    <p class="text-gray-500 text-sm max-w-sm">Chưa nạp dữ liệu. (Sử dụng tab Nạp Tài Liệu để dán JSON ngữ pháp vào đây).</p>
+                </div>
+            </section>
+
+            <!-- BÀI TẬP -->
+            <section id="tab-exercise" class="tab-content hidden h-full p-2 md:p-4 absolute inset-0">
+                <div class="bg-white rounded-xl shadow-sm p-6 text-center h-full border border-gray-200 flex flex-col items-center justify-center">
+                    <span class="text-6xl mb-4">⏱️</span>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Thực Chiến HSK</h2>
+                    <p class="text-gray-500 text-sm mb-6 max-w-sm">Bài trắc nghiệm phản xạ 8 giây. Chưa có dữ liệu.</p>
+                    <button class="bg-[#34C759] text-white font-bold py-3 px-8 rounded-full shadow-md ios-btn">Bắt đầu</button>
+                </div>
+            </section>
+
+            <!-- NẠP TÀI LIỆU -->
+            <section id="tab-upload" class="tab-content hidden h-full p-2 md:p-4 absolute inset-0 flex flex-col">
+                <div class="bg-white rounded-xl shadow-sm p-4 h-full border border-gray-200 flex flex-col overflow-y-auto">
+                    <h2 class="text-lg font-bold text-gray-800 mb-3">Tạo Prompt AI</h2>
+                    
+                    <div class="flex gap-2 mb-3">
+                        <select id="prompt-type" class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none flex-1" onchange="generatePrompt()">
+                            <option value="vocab-single" selected>Từ vựng (Từ đơn)</option>
+                            <option value="vocab-chunk">Từ vựng (Cụm 3-4 chữ)</option>
+                            <option value="grammar">Ngữ pháp</option>
+                            <option value="exercise">Bài tập trắc nghiệm</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-[#2C2C2E] text-[#34C759] p-3 rounded-lg font-mono text-xs md:text-sm mb-4 relative shadow-inner">
+                        <button class="absolute top-2 right-2 bg-[#48484A] text-white text-xs px-2 py-1 rounded ios-btn" onclick="copyPrompt()">Copy</button>
+                        <code id="ai-prompt" class="block pr-12 whitespace-pre-wrap break-words"></code>
+                    </div>
+
+                    <h2 class="text-lg font-bold text-gray-800 mb-2">Lưu JSON</h2>
+                    <textarea id="json-input" class="flex-1 w-full border border-gray-200 bg-gray-50 rounded-lg p-3 outline-none focus:border-green-400 resize-none font-mono text-xs md:text-sm shadow-inner" placeholder='Dán mảng JSON vào đây...&#10;[{"hanzi": "...", "pinyin": "...", "meaning": "..."}]'></textarea>
+                    
+                    <div class="mt-4 flex justify-between items-center gap-2">
+                        <button class="text-red-500 bg-red-50 px-3 py-2 rounded-lg text-sm font-medium ios-btn" onclick="clearLevelData()">Xóa data cấp độ này</button>
+                        <button class="bg-[#34C759] text-white px-6 py-2 rounded-lg shadow font-bold ios-btn" onclick="saveUploadData()">Lưu Dữ Liệu</button>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script>
+        // Mặc định nạp 100% từ đơn
         const defaultData = {
             1: [
                 { hanzi: "我", pinyin: "wǒ", meaning: "Tôi" },
                 { hanzi: "你", pinyin: "nǐ", meaning: "Bạn" },
                 { hanzi: "吃", pinyin: "chī", meaning: "Ăn" },
-                { hanzi: "喝", pinyin: "hē", meaning: "Uống" }
+                { hanzi: "喝", pinyin: "hē", meaning: "Uống" },
+                { hanzi: "去", pinyin: "qù", meaning: "Đi" },
+                { hanzi: "水", pinyin: "shuǐ", meaning: "Nước" }
             ]
         };
 
@@ -151,78 +196,52 @@
 
         window.onload = () => {
             initLocalStorage();
-            renderHSKLevels();
-            loadVocabTable();
+            renderLobby();
         };
 
-        function initLocalStorage() {
-            const saved = localStorage.getItem('HSK_Flash_Data');
-            if (saved) {
-                db = JSON.parse(saved); 
-            } else {
-                db = JSON.parse(JSON.stringify(defaultData)); 
-                localStorage.setItem('HSK_Flash_Data', JSON.stringify(db));
-            }
-            activeData = db[currentLevel] ? [...db[currentLevel]] : [];
-        }
-
-        function saveUploadData() {
-            const inputStr = document.getElementById('json-input').value.trim();
-            if (!inputStr) {
-                alert("Bạn chưa dán dữ liệu!");
-                return;
-            }
-            try {
-                const parsed = JSON.parse(inputStr);
-                if (!Array.isArray(parsed)) throw new Error("Dữ liệu phải là định dạng Mảng [...]");
-                if (!parsed[0].hanzi || !parsed[0].pinyin || !parsed[0].meaning) {
-                    throw new Error("Thiếu cấu trúc hanzi, pinyin hoặc meaning.");
-                }
-
-                db[currentLevel] = parsed;
-                localStorage.setItem('HSK_Flash_Data', JSON.stringify(db));
-                
-                activeData = [...db[currentLevel]];
-                loadVocabTable();
-                
-                alert(`Đã lưu thành công ${parsed.length} từ vựng cho HSK ${currentLevel}! Dữ liệu này sẽ nằm vĩnh viễn trên trình duyệt của bạn.`);
-                document.getElementById('json-input').value = ""; 
-
-            } catch (error) {
-                alert("Lỗi JSON: " + error.message + "\n\nHãy đảm bảo bạn copy đúng y hệt khối [...] từ Gemini sinh ra.");
-            }
-        }
-
-        function clearLevelData() {
-            if(confirm(`Bạn có chắc muốn xóa sạch từ vựng HSK ${currentLevel} không?`)) {
-                db[currentLevel] = [];
-                localStorage.setItem('HSK_Flash_Data', JSON.stringify(db));
-                activeData = [];
-                loadVocabTable();
-            }
-        }
-
-        function renderHSKLevels() {
-            const container = document.getElementById('hsk-levels');
+        function renderLobby() {
+            const container = document.getElementById('hsk-grid');
+            container.innerHTML = '';
             for (let i = 1; i <= 6; i++) {
                 const btn = document.createElement('button');
-                btn.className = `px-3 py-1 rounded font-bold transition ${i === currentLevel ? 'bg-white text-green-700 shadow' : 'bg-green-800 text-green-200 hover:bg-green-600'}`;
-                btn.innerText = `HSK ${i}`;
+                btn.className = "bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-sm ios-btn hover:border-green-400";
+                btn.innerHTML = `<div class="text-gray-400 text-xs mb-1">Cấp độ</div><div class="text-2xl font-bold text-gray-800">HSK ${i}</div>`;
                 btn.onclick = () => selectHSK(i);
                 container.appendChild(btn);
             }
         }
 
+        function showLobby() {
+            document.getElementById('view-study').classList.add('hidden');
+            document.getElementById('view-study').classList.remove('flex');
+            
+            document.getElementById('view-lobby').classList.remove('hidden');
+            document.getElementById('view-lobby').classList.add('flex');
+            
+            document.getElementById('btn-back').classList.add('hidden');
+            document.getElementById('header-title').innerHTML = `HSK Flash<span class="text-green-500">Typing</span>`;
+            
+            window.speechSynthesis.cancel();
+        }
+
         function selectHSK(level) {
             currentLevel = level;
-            document.getElementById('hsk-levels').innerHTML = '';
-            renderHSKLevels();
+            
+            document.getElementById('view-lobby').classList.add('hidden');
+            document.getElementById('view-lobby').classList.remove('flex');
+            
+            document.getElementById('view-study').classList.remove('hidden');
+            document.getElementById('view-study').classList.add('flex');
+            
+            document.getElementById('btn-back').classList.remove('hidden');
+            document.getElementById('header-title').innerText = `Lớp HSK ${level}`;
+            document.getElementById('grammar-title').innerText = `Ngữ Pháp HSK ${level}`;
             
             activeData = db[currentLevel] ? [...db[currentLevel]] : [];
-            
-            document.getElementById('grammar-title').innerText = `Ngữ Pháp HSK ${level}`;
-            document.getElementById('ai-prompt').innerText = document.getElementById('ai-prompt').innerText.replace(/HSK \d/, `HSK ${level}`);
+            generatePrompt(); 
             loadVocabTable();
+            
+            switchTab('vocab', document.querySelector('.tab-btn'));
         }
 
         function switchTab(tabId, btn) {
@@ -230,16 +249,21 @@
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             
             document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('active', 'border-white', 'opacity-100');
-                el.classList.add('border-transparent', 'opacity-80');
+                el.classList.remove('bg-green-500', 'text-white');
+                el.classList.add('bg-gray-100', 'text-gray-600');
             });
-            btn.classList.add('active', 'border-white', 'opacity-100');
-            btn.classList.remove('border-transparent', 'opacity-80');
+            btn.classList.remove('bg-gray-100', 'text-gray-600');
+            btn.classList.add('bg-green-500', 'text-white');
         }
 
-        function shuffleData() {
-            activeData = activeData.sort(() => Math.random() - 0.5);
-            loadVocabTable();
+        function initLocalStorage() {
+            const saved = localStorage.getItem('HSK_Flash_Data_V3'); // Cập nhật key để nạp data mới
+            if (saved) {
+                db = JSON.parse(saved); 
+            } else {
+                db = JSON.parse(JSON.stringify(defaultData)); 
+                localStorage.setItem('HSK_Flash_Data_V3', JSON.stringify(db));
+            }
         }
 
         function loadVocabTable() {
@@ -247,26 +271,25 @@
             tbody.innerHTML = '';
             
             if(activeData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center p-6 text-slate-500">Chưa có dữ liệu HSK ${currentLevel}. Hãy qua tab "Nạp Tài Liệu" dán JSON vào nhé!</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center p-8 text-gray-400 text-sm">Chưa có từ vựng HSK ${currentLevel}.<br>Qua tab Nạp Tài Liệu để thêm nhé.</td></tr>`;
                 return;
             }
 
             const mode = document.getElementById('mode-select').value;
             activeData.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                tr.className = "border-b border-green-50 hover:bg-green-50";
                 
                 const hanziClass = mode === 'vi-zh' ? 'concealed-text' : '';
                 const pinyinClass = mode === 'vi-zh' ? 'concealed-text' : '';
                 const meaningClass = mode === 'zh-vi' ? 'concealed-text' : '';
 
                 tr.innerHTML = `
-                    <td class="p-3 font-hanzi text-green-900 col-hanzi ${hanziClass}">${item.hanzi}</td>
-                    <td class="p-3 text-slate-600 col-pinyin ${pinyinClass}">${item.pinyin}</td>
-                    <td class="p-3 text-slate-700 font-medium col-meaning ${meaningClass}">${item.meaning}</td>
-                    <td class="p-3">
+                    <td class="p-3 font-hanzi text-gray-900 col-hanzi ${hanziClass}">${item.hanzi}</td>
+                    <td class="p-3 text-sm text-gray-600 col-pinyin ${pinyinClass}">${item.pinyin}</td>
+                    <td class="p-3 text-sm text-gray-700 col-meaning ${meaningClass}">${item.meaning}</td>
+                    <td class="p-2 w-24 md:w-auto">
                         <input type="text" id="input-${index}" 
-                            class="w-full border border-green-300 rounded px-3 py-2 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 font-hanzi"
+                            class="w-full min-w-[80px] border border-gray-300 rounded-lg px-2 py-1.5 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 font-hanzi text-center"
                             oninput="checkMatch(this, '${item.hanzi}', ${index})"
                             autocomplete="off">
                     </td>
@@ -275,41 +298,39 @@
             });
         }
 
-        // HÀM PHÁT ÂM THANH TIẾNG TRUNG
+        function shuffleData() {
+            activeData = activeData.sort(() => Math.random() - 0.5);
+            loadVocabTable();
+        }
+
         function playChineseAudio(text) {
             if ('speechSynthesis' in window) {
-                // Hủy âm thanh cũ đang đọc dở để tránh đè giọng khi gõ nhanh
                 window.speechSynthesis.cancel();
-                
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'zh-CN'; // Set cứng giọng tiếng Trung
-                utterance.rate = 0.9;     // Đọc chậm lại một xíu cho rõ chữ
-                
+                utterance.lang = 'zh-CN'; 
+                utterance.rate = 0.9;
                 window.speechSynthesis.speak(utterance);
             }
         }
 
         function checkMatch(input, targetWord, currentIndex) {
             if (input.value.trim() === targetWord) {
-                
-                // Gọi hàm đọc âm thanh ngay khi gõ đúng
                 playChineseAudio(targetWord);
 
                 const row = input.closest('tr');
-                row.classList.add('bg-green-100', 'completed-row');
-                input.classList.add('bg-green-200', 'border-green-500');
+                row.classList.add('bg-[#E8F5E9]', 'completed-row');
+                input.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
                 input.readOnly = true;
 
                 const nextInput = document.getElementById(`input-${currentIndex + 1}`);
                 if (nextInput) {
                     nextInput.focus();
+                    nextInput.scrollIntoView({ behavior: "smooth", block: "center" });
                 } else {
                     setTimeout(() => {
-                        alert(`Tuyệt vời! Bạn đã gõ xong lượt HSK ${currentLevel}`);
+                        alert(`🎉 Tuyệt vời! Đã hoàn thành HSK ${currentLevel}`);
                         loadVocabTable();
-                        const firstInput = document.getElementById('input-0');
-                        if(firstInput) firstInput.focus();
-                    }, 800);
+                    }, 500);
                 }
             }
         }
@@ -340,10 +361,71 @@
             loadVocabTable();
         }
 
+        function generatePrompt() {
+            const type = document.getElementById('prompt-type').value;
+            let promptText = "";
+            
+            if(type === 'vocab-single') {
+                promptText = `Tạo 25 từ vựng (từ đơn) thông dụng giao tiếp HSK ${currentLevel}. KHÔNG dùng từ chuyên ngành/logistic. Xuất mảng JSON thuần túy:\n[\n  {"hanzi": "我", "pinyin": "wǒ", "meaning": "Tôi"}\n]`;
+            } else if (type === 'vocab-chunk') {
+                promptText = `Tạo 25 cụm từ giao tiếp thông dụng (3-4 chữ/cụm) thuộc HSK ${currentLevel}. KHÔNG dùng từ chuyên ngành/logistic. Dịch sát nghĩa đen từng chữ. Xuất mảng JSON thuần túy:\n[\n  {"hanzi": "我要喝水", "pinyin": "wǒ yào hē shuǐ", "meaning": "Tôi / muốn / uống / nước"}\n]`;
+            } else if (type === 'grammar') {
+                promptText = `Tạo 5 điểm ngữ pháp cốt lõi của HSK ${currentLevel}. KHÔNG dùng từ chuyên ngành. Xuất mảng JSON thuần túy:\n[\n  {"title": "Cấu trúc Chủ - Vị", "formula": "S + V + O", "example": "我喝水"}\n]`;
+            } else if (type === 'exercise') {
+                promptText = `Tạo 10 câu trắc nghiệm phản xạ HSK ${currentLevel}. KHÔNG dùng từ chuyên ngành. Xuất mảng JSON thuần túy:\n[\n  {"question": "Bạn muốn uống gì?", "options": ["A", "B", "C", "D"], "answer": "A"}\n]`;
+            }
+            
+            document.getElementById('ai-prompt').innerText = promptText;
+        }
+
         function copyPrompt() {
             const text = document.getElementById('ai-prompt').innerText;
             navigator.clipboard.writeText(text);
-            alert("Đã copy Prompt! Hãy dán sang Gemini để lấy dữ liệu.");
+            
+            const btn = event.target;
+            btn.innerText = "Copied!";
+            btn.classList.add("bg-green-500");
+            setTimeout(() => {
+                btn.innerText = "Copy";
+                btn.classList.remove("bg-green-500");
+            }, 2000);
+        }
+
+        function saveUploadData() {
+            const inputStr = document.getElementById('json-input').value.trim();
+            const type = document.getElementById('prompt-type').value;
+            
+            if (!inputStr) return alert("Bạn chưa dán dữ liệu!");
+            
+            if(type !== 'vocab-single' && type !== 'vocab-chunk') {
+                return alert("Tính năng lưu Ngữ Pháp và Bài Tập đang phát triển. Hãy lưu Từ Vựng trước!");
+            }
+
+            try {
+                const parsed = JSON.parse(inputStr);
+                if (!Array.isArray(parsed)) throw new Error("Dữ liệu phải là định dạng mảng [...]");
+                
+                db[currentLevel] = parsed;
+                localStorage.setItem('HSK_Flash_Data_V3', JSON.stringify(db));
+                
+                activeData = [...db[currentLevel]];
+                loadVocabTable();
+                
+                alert(`Đã lưu thành công ${parsed.length} từ đơn!`);
+                document.getElementById('json-input').value = ""; 
+
+            } catch (error) {
+                alert("Lỗi cấu trúc JSON, hãy đảm bảo copy đúng block [...] từ AI.");
+            }
+        }
+
+        function clearLevelData() {
+            if(confirm(`Xóa sạch từ vựng HSK ${currentLevel}?`)) {
+                db[currentLevel] = [];
+                localStorage.setItem('HSK_Flash_Data_V3', JSON.stringify(db));
+                activeData = [];
+                loadVocabTable();
+            }
         }
     </script>
 </body>
